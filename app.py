@@ -12,6 +12,8 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 from history import SHANGHAI, ROOT_FOLDER, Snapshot, load_history, summary
+from app_icon import install_window_icon
+from widgets import RoundedScrollbar
 
 def local_vault() -> str:
     try:
@@ -35,10 +37,6 @@ THEMES = {
         text="#404e5b", muted="#677b8f", line="#d3dbe1", accent="#677b8f",
         secondary="#948f8c", empty="#e7ebee", heat=["#ccc9c6", "#8fa0b8", "#677b8f", "#404e5b"],
         palette=["#404e5b", "#677b8f", "#8fa0b8", "#948f8c", "#ccc9c6"]),
-    "暗夜 · 绯红": dict(bg="#141616", panel="#202222", sidebar="#191b1b",
-        text="#f0edeb", muted="#a49f9d", line="#3d3c38", accent="#bd6965",
-        secondary="#746d67", empty="#30312f", heat=["#3d3c38", "#746d67", "#a49f9d", "#7f1d1a"],
-        palette=["#141616", "#3d3c38", "#746d67", "#a49f9d", "#7f1d1a"]),
 }
 ORDER = {"创建": 0, "修改": 1, "删除": 2}
 
@@ -57,6 +55,7 @@ class App:
     def __init__(self, root: tk.Tk, vault=DEFAULT_VAULT, autoload=True):
         self.root = root
         root.title("Obsidian 足迹")
+        install_window_icon(root)
         root.geometry("1380x910")
         root.minsize(1120, 880)
         root.option_add("*Font", ("Microsoft YaHei UI", 10))
@@ -127,7 +126,7 @@ class App:
         folder_box.pack(fill="both", expand=True)
         self.folder_tree = ttk.Treeview(folder_box, show="tree", selectmode="browse")
         self.folder_tree.column("#0", width=180, stretch=True)
-        folder_scroll = ttk.Scrollbar(folder_box, orient="vertical", command=self.folder_tree.yview)
+        folder_scroll = RoundedScrollbar(folder_box, orient="vertical", command=self.folder_tree.yview)
         self.folder_tree.configure(yscrollcommand=folder_scroll.set)
         folder_scroll.pack(side="right", fill="y")
         self.folder_tree.pack(fill="both", expand=True)
@@ -203,13 +202,14 @@ class App:
                                            ("source", "来源", 90, False), ("folder", "所在文件夹", 300, True)):
             self.notes_tree.heading(key, text=title, anchor="w")
             self.notes_tree.column(key, width=width, minwidth=70, stretch=stretch, anchor="w")
-        scrollbar = ttk.Scrollbar(table_box, orient="vertical", command=self.notes_tree.yview)
-        hscroll = ttk.Scrollbar(table_box, orient="horizontal", command=self.notes_tree.xview)
+        scrollbar = RoundedScrollbar(table_box, orient="vertical", command=self.notes_tree.yview)
+        hscroll = RoundedScrollbar(table_box, orient="horizontal", command=self.notes_tree.xview)
         self.notes_tree.configure(yscrollcommand=scrollbar.set, xscrollcommand=hscroll.set)
         scrollbar.pack(side="right", fill="y")
         hscroll.pack(side="bottom", fill="x")
         self.notes_tree.pack(fill="both", expand=True)
         self.notes_tree.bind("<<TreeviewSelect>>", self.note_details)
+        self.notes_tree.bind("<Shift-MouseWheel>", lambda e: hscroll.wheel(e))
         self.note_info = tk.Text(self.details, height=2, wrap="word", relief="flat", borderwidth=0,
                                  font=("Microsoft YaHei UI", 9), padx=2, pady=7, state="disabled")
         self.note_info.pack(side="bottom", fill="x", pady=(8, 0), before=table_box)
@@ -238,8 +238,6 @@ class App:
         style.configure("Treeview.Heading", background=c["empty"], foreground=c["muted"],
                         relief="flat", padding=(8, 8), font=("Microsoft YaHei UI", 9, "bold"))
         style.map("Treeview", background=[("selected", c["accent"])], foreground=[("selected", "#ffffff")])
-        style.configure("Vertical.TScrollbar", background=c["line"], troughcolor=c["panel"], borderwidth=0)
-        style.configure("Horizontal.TScrollbar", background=c["line"], troughcolor=c["panel"], borderwidth=0)
         self.root.option_add("*TCombobox*Listbox.background", c["panel"])
         self.root.option_add("*TCombobox*Listbox.foreground", c["text"])
 
@@ -255,6 +253,8 @@ class App:
             elif isinstance(widget, tk.Text):
                 widget.configure(background=bg, foreground=c["muted"], insertbackground=c["text"],
                                  selectbackground=c["accent"], selectforeground="#ffffff")
+            if isinstance(widget, RoundedScrollbar):
+                widget.set_colors(bg, c["heat"][0], c["accent"])
             for child in widget.winfo_children():
                 recolor(child, bg)
         recolor(self.root, c["bg"])
@@ -544,6 +544,11 @@ def main():
     try:
         import ctypes
         ctypes.windll.shcore.SetProcessDpiAwareness(1)
+    except (AttributeError, OSError):
+        pass
+    try:
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("Afterglow.Observer")
     except (AttributeError, OSError):
         pass
     root = tk.Tk()

@@ -14,7 +14,8 @@ from pathlib import Path, PurePosixPath
 
 REMOTE = "https://github.com/tail258/Afterglow-Observer.git"
 ROOT_FILES = {"app.py", "history.py", "sync.py", "README.md", ".gitignore", ".gitattributes",
-              "启动.ps1", "启动.cmd", "同步.ps1", "启用自动同步.ps1", "停用自动同步.ps1"}
+              "启动.ps1", "启动.cmd", "同步.ps1", "启用自动同步.ps1", "停用自动同步.ps1",
+              "创建快捷方式.ps1"}
 PRIVATE_PARTS = {"work", "outputs", "notes", "vault", ".obsidian", ".trash", ".env", "__pycache__"}
 SENSITIVE = [
     re.compile(r"(?:gh[pousr]_|github_pat_)[A-Za-z0-9_]{30,}"),
