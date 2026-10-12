@@ -15,7 +15,7 @@ if (Get-Command gh -ErrorAction SilentlyContinue) {
     $taskLogin = & gh api user --jq .login 2>$null
     $taskId = & gh api user --jq .id 2>$null
     if ($LASTEXITCODE -ne 0 -or -not $taskLogin -or -not $taskId) { throw '请先运行 gh auth login。' }
-    & git -C $taskRepo config credential.helper ''
+    & git -C $taskRepo config --replace-all credential.helper ''
     & git -C $taskRepo config --add credential.helper '!gh auth git-credential'
     $taskAuthor = & git -C $taskRepo config user.name
     if (-not $taskAuthor) { & git -C $taskRepo config user.name $taskLogin }
